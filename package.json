@@ -1,0 +1,34 @@
+{
+  "name": "bottele",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "tsc": "tsc",
+    "dev": "ts-node-dev --respawn --transpile-only ./src/index.ts",
+    "prod": "tsc && node ./build/index.js",
+    "tslint:check": "tslint -c tslint.json 'src/**/*.{ts}'"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/node": "^17.0.7",
+    "dotenv": "^10.0.0",
+    "eslint": "^8.6.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-prettier": "^4.0.0",
+    "eslint-plugin-sort-destructure-keys": "^1.4.0",
+    "node-telegram-bot-api": "^0.56.0",
+    "prettier": "^2.5.1",
+    "ts-node": "^10.4.0",
+    "typescript": "^4.5.4"
+  },
+  "devDependencies": {
+    "@types/node-telegram-bot-api": "^0.53.5",
+    "@typescript-eslint/eslint-plugin": "^5.9.0",
+    "@typescript-eslint/parser": "^5.9.0",
+    "ts-node-dev": "^1.1.8"
+  }
+}
