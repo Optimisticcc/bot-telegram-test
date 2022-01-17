@@ -2,7 +2,7 @@
   "name": "bottele",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "index.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "tsc": "tsc",
@@ -15,13 +15,16 @@
   "license": "ISC",
   "dependencies": {
     "@types/node": "^17.0.7",
+    "axios": "^0.24.0",
     "dotenv": "^10.0.0",
     "eslint": "^8.6.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^4.0.0",
     "eslint-plugin-sort-destructure-keys": "^1.4.0",
+    "global": "^4.4.0",
     "node-telegram-bot-api": "^0.56.0",
     "prettier": "^2.5.1",
+    "prisma": "^3.8.0",
     "ts-node": "^10.4.0",
     "typescript": "^4.5.4"
   },
