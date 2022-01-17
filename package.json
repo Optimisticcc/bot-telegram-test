@@ -23,6 +23,7 @@
     "eslint-plugin-sort-destructure-keys": "^1.4.0",
     "global": "^4.4.0",
     "node-telegram-bot-api": "^0.56.0",
+    "nodemon": "^2.0.15",
     "prettier": "^2.5.1",
     "prisma": "^3.8.0",
     "ts-node": "^10.4.0",
