@@ -353,6 +353,46 @@ bot.onText(/\/add-issue /, function onTextHandler(msg) {
   }
 });
 
+bot.onText(/\/add-issue-project-user /, function onTextHandler(msg) {
+  let mess = '';
+  let idProject = '';
+  let issueStr = '';
+  let idUser = '';
+  let msgText = msg.text;
+  if (msgText && msgText.split(' ').length == 4) {
+    idProject = msgText.split(' ')[1];
+    issueStr = msgText.split(' ')[2];
+    idUser = msgText.split(' ')[3];
+  } else {
+    mess = 'Your input not valid';
+  }
+  if (mess) {
+    bot.sendMessage(msg.chat.id, mess);
+  } else {
+    axios
+      .post(
+        `${process.env.API_GITLAB_URL}/projects/${idProject}/issues`,
+        {
+          title: issueStr,
+          assignee_id: idUser,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.ACCESS_TOKEN_GITLAB}`,
+          },
+        }
+      )
+      .then((res) => {
+        let responseTelegram = `add issue ${issueStr} to project ${idProject} to user ${idUser} successfully`;
+        bot.sendMessage(msg.chat.id, responseTelegram);
+      })
+      .catch((err) => {
+        console.log(err);
+        bot.sendMessage(msg.chat.id, err.message);
+      });
+  }
+});
+
 // Handle callback queries
 bot.on(
   'callback_query',
