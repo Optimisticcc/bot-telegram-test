@@ -4,6 +4,8 @@ import axios from 'axios';
 dotenv.config();
 const token = process.env.ACCESS_TOKEN_BOT_TELE || '';
 const bot = new TelegramBot(token, { polling: true });
+var projectId = '';
+var memberId = '';
 bot.onText(/^\/update-bot$/, (msg) => {
   console.log(msg);
   axios
@@ -352,15 +354,14 @@ bot.onText(/\/list-project-issues /, (msg) => {
 //       });
 //   }
 // });
-bot.onText(/\/add-issue/, async (msg) => {
-  console.log('Hello');
-  let idProject : string | undefined;
-  let assign;
+
+bot.onText(/\/list-issues/, async (msg) => {
+  let idProject: string | undefined;
   let projects: any = [];
   await axios
     .get('https://gitlab.com/api/v4/groups/15116102/projects', {
       headers: {
-        Authorization: 'Bearer glpat-yCGSw2AkVyDtWERHy-4z',
+        Authorization: 'Bearer glpat-EwNsMfkA5gJYNLjDxnJ6',
       },
     })
     .then((res) => {
@@ -376,115 +377,244 @@ bot.onText(/\/add-issue/, async (msg) => {
       inline_keyboard: projects,
     },
   });
-  bot.on('callback_query', function (data) {
+  bot.on('callback_query', (data) => {
     idProject = data.data;
-    console.log(data.data, msg);
-    try {
-      bot.deleteMessage(
-        data.message!.chat!.id,
-        data!.message!.message_id.toString()
-      );
-    } catch (err) {}
-    bot.sendMessage(msg.chat.id, 'Choose assignment', {
-      reply_markup: {
-        inline_keyboard: [
-          [
-            {
-              text: 'Hoan',
-              callback_data: '6281135',
-            },
-            {
-              text: 'Hung',
-              callback_data: '6320644',
-            },
-          ],
-        ],
-      },
-    });
-    bot.on('callback_query', (data2) => {
-      assign = data2.data;
-      try {
-        bot.deleteMessage(
-          data2.message!.chat!.id,
-          data2!.message!.message_id.toString()
-        );
-      } catch (err) {}
-      bot.sendMessage(
-        msg.chat.id,
-        'Type /issue title of issue to end the action'
-      );
-      bot.onText(/\/issue/, (message) => {
-        if (message!.text!.split(' ').length <= 1) {
-          bot.sendMessage(msg.chat.id, 'Invalid issue title');
-        } else {
-          let title = message.text?.slice(message.text.indexOf(' '));
-          axios
-            .post(
-              `${process.env.API_GITLAB_URL}/projects/${idProject}/issues`,
-              {
-                title: title,
-              },
-              {
-                headers: {
-                  Authorization: `Bearer ${process.env.ACCESS_TOKEN_GITLAB}`,
-                },
-              }
-            )
-            .then((res) => {
-              let responseTelegram = `add issue ${title} to project ${idProject} successfully`;
-              bot.sendMessage(msg.chat.id, responseTelegram);
-            })
-            .catch((err) => {
-              console.log(err);
-              bot.sendMessage(msg.chat.id, err.message);
-            });
+    axios
+      .get(`${process.env.API_GITLAB_URL}/projects/${idProject}/issues`, {
+        headers: {
+          Authorization: `Bearer ${process.env.ACCESS_TOKEN_GITLAB}`,
+        },
+      })
+      .then((res) => {
+        let responseTelegram = `List issue of project ${idProject}:\n`;
+        for (let item of res.data) {
+          responseTelegram += `Issue ${item.id}: ${item.title}\n`;
+          // if (item.assignment.name) {
+          //   responseTelegram += ` assign to ${item.assignee.name}\n`;
+          // } else {
+          //   responseTelegram += '\n';
+          // }
         }
+
+        bot.sendMessage(msg.chat.id, responseTelegram);
+      })
+      .catch((err) => {
+        console.log(err);
+        bot.sendMessage(msg.chat.id, err.message);
       });
-    });
   });
-  // axios
-  //   .post(
-  //     `${process.env.API_GITLAB_URL}/projects/${idProject}/issues`,
-  //     {
-  //       title: issueStr,
-  //     },
-  //     {
+});
+
+bot.onText(/\/add-issue/, async (msg) => {
+  // let idProject: string | undefined;
+  // let assign = '';
+  let projects: any = [];
+  // let members: any = [];
+  await axios
+    .get('https://gitlab.com/api/v4/groups/15116102/projects', {
+      headers: {
+        Authorization: 'Bearer glpat-yCGSw2AkVyDtWERHy-4z',
+      },
+    })
+    .then((res) => {
+      projects = res.data.map((p: any) => [
+        {
+          text: p.name,
+          callback_data: p.id,
+        },
+      ]);
+    });
+  await bot.sendMessage(msg.chat.id, 'Choose your project', {
+    reply_markup: {
+      inline_keyboard: projects,
+    },
+  });
+  // bot.on('callback_query', async (data) => {
+  //   projectId = data.data as string;
+  //   idProject = data.data;
+  //   try {
+  //     await bot.deleteMessage(
+  //       data.message!.chat!.id,
+  //       data!.message!.message_id.toString()
+  //     );
+  //   } catch (err) {}
+  //   await axios
+  //     .get('https://gitlab.com/api/v4/groups/15116102/members', {
   //       headers: {
-  //         Authorization: `Bearer ${process.env.ACCESS_TOKEN_GITLAB}`,
+  //         Authorization: 'Bearer glpat-EwNsMfkA5gJYNLjDxnJ6',
+  //       },
+  //     })
+  //     .then((res) => {
+  //       members = res.data.map((p: any) => [
+  //         {
+  //           text: p.name,
+  //           callback_data: p.id,
+  //         },
+  //       ]);
+  //     });
+  //   await bot.sendMessage(
+  //     msg.chat.id,
+  //     `Choose assignment to projectID: ${idProject}`,
+  //     {
+  //       reply_markup: {
+  //         inline_keyboard: members,
   //       },
   //     }
-  //   )
-  //   .then((res) => {
-  //     let responseTelegram = `add issue ${issueStr} to project ${idProject} successfully`;
-  //     bot.sendMessage(msg.chat.id, responseTelegram);
-  //   })
-  //   .catch((err) => {
-  //     console.log(err);
-  //     bot.sendMessage(msg.chat.id, err.message);
+  //   );
+  //   bot.on('callback_query', async (data2) => {
+  //     assign = data2.data as string;
+  //     try {
+  //       await bot.deleteMessage(
+  //         data2!.message!.chat.id,
+  //         data2!.message!.message_id.toString()
+  //       );
+  //     } catch (err) {}
+  //     await bot.sendMessage(
+  //       msg.chat.id,
+  //       'Type /issue title of issue to end the action'
+  //     );
+  //     bot.onText(/\/issue/, async (message) => {
+  //       if (message!.text!.split(' ').length <= 1) {
+  //         bot.sendMessage(msg!.chat.id, 'Invalid issue title');
+  //       } else {
+  //         let title = message.text?.slice(message.text.indexOf(' '));
+  //         await axios
+  //           .post(
+  //             `${process.env.API_GITLAB_URL}/projects/${idProject}/issues`,
+  //             {
+  //               title: title,
+  //               assignee_id: assign,
+  //             },
+  //             {
+  //               headers: {
+  //                 Authorization: `Bearer ${process.env.ACCESS_TOKEN_GITLAB}`,
+  //               },
+  //             }
+  //           )
+  //           .then((res) => {
+  //             let responseTelegram = `add issue ${title} to project ${idProject} successfully`;
+  //             bot.sendMessage(msg!.chat.id, responseTelegram);
+  //           })
+  //           .catch((err) => {
+  //             console.log(err);
+  //             bot.sendMessage(msg!.chat.id, err.message);
+  //           });
+  //       }
+  //     });
   //   });
+  // });
 });
-bot.onText(/\/add-issue-project-user /, function onTextHandler(msg) {
-  let mess = '';
-  let idProject = '';
-  let issueStr = '';
-  let idUser = '';
-  let msgText = msg.text;
-  if (msgText && msgText.split(' ').length == 4) {
-    idProject = msgText.split(' ')[1];
-    issueStr = msgText.split(' ')[2];
-    idUser = msgText.split(' ')[3];
-  } else {
-    mess = 'Your input not valid';
+
+// bot.on('callback_query', async (data2) => {
+//   let members: any = [];
+//   if (data2!.message!.text === 'Choose assignment') {
+//     console.log('🚀 ~ file: index.ts ~ line 512 ~ bot.on ~ data2', data2);
+//     memberId = data2.data as string;
+//     try {
+//       await bot.deleteMessage(
+//         data2!.message!.chat.id,
+//         data2!.message!.message_id.toString()
+//       );
+//     } catch (err) {}
+//     await bot.sendMessage(
+//       data2!.message!.chat.id,
+//       'Type /issue title of issue to end the action'
+//     );
+//   } else if (data2!.message!.text === 'Choose your project') {
+//     try {
+//       await bot.deleteMessage(
+//         data2!.message!.chat.id,
+//         data2!.message!.message_id.toString()
+//       );
+//     } catch (err) {}
+//     projectId = data2.data as string;
+//     console.log('🚀 ~ file: index.ts ~ line 531 ~ bot.on ~ data2', data2);
+//     console.log(
+//       '🚀 ~ file: index.ts ~ line 531 ~ bot.on ~ projectId',
+//       projectId
+//     );
+//     await axios
+//       .get('https://gitlab.com/api/v4/groups/15116102/members', {
+//         headers: {
+//           Authorization: 'Bearer glpat-EwNsMfkA5gJYNLjDxnJ6',
+//         },
+//       })
+//       .then((res) => {
+//         members = res.data.map((p: any) => [
+//           {
+//             text: p.name,
+//             callback_data: p.id,
+//           },
+//         ]);
+//       });
+//     await bot.sendMessage(
+//       data2!.message!.chat.id,
+//       `Choose assignment to projectID: ${projectId}`,
+//       {
+//         reply_markup: {
+//           inline_keyboard: members,
+//         },
+//       }
+//     );
+//   }
+// });
+
+bot.on('callback_query', async (data2) => {
+  let members: any = [];
+  if (data2!.message!.text === 'Choose assignment') {
+    memberId = data2.data as string;
+    // try {
+    //   await bot.deleteMessage(
+    //     data2!.message!.chat.id,
+    //     data2!.message!.message_id.toString()
+    //   );
+    // } catch (err) {}
+    await bot.editMessageText('Type /issue title of issue to end the action', {
+      chat_id: data2!.message?.chat.id,
+      message_id: data2!.message?.message_id,
+    });
+  } else if (data2!.message!.text === 'Choose your project') {
+    // try {
+    //   await bot.deleteMessage(
+    //     data2!.message!.chat.id,
+    //     data2!.message!.message_id.toString()
+    //   );
+    // } catch (err) {}
+
+    projectId = data2.data as string;
+    await axios
+      .get('https://gitlab.com/api/v4/groups/15116102/members', {
+        headers: {
+          Authorization: 'Bearer glpat-EwNsMfkA5gJYNLjDxnJ6',
+        },
+      })
+      .then((res) => {
+        members = res.data.map((p: any) => [
+          {
+            text: p.name,
+            callback_data: p.id,
+          },
+        ]);
+      });
+    await bot.editMessageText('Choose assignment', {
+      chat_id: data2!.message?.chat.id,
+      message_id: data2!.message?.message_id,
+      reply_markup: { inline_keyboard: members },
+    });
   }
-  if (mess) {
-    bot.sendMessage(msg.chat.id, mess);
+});
+
+bot.onText(/\/issue/, async (message) => {
+  if (message!.text!.split(' ').length <= 1) {
+    bot.sendMessage(message!.chat.id, 'Invalid issue title');
   } else {
-    axios
+    let title = message.text?.slice(message.text.indexOf(' '));
+    await axios
       .post(
-        `${process.env.API_GITLAB_URL}/projects/${idProject}/issues`,
+        `${process.env.API_GITLAB_URL}/projects/${projectId}/issues`,
         {
-          title: issueStr,
-          assignee_id: idUser,
+          title: title,
+          assignee_id: memberId,
         },
         {
           headers: {
@@ -493,15 +623,57 @@ bot.onText(/\/add-issue-project-user /, function onTextHandler(msg) {
         }
       )
       .then((res) => {
-        let responseTelegram = `add issue ${issueStr} to project ${idProject} to user ${idUser} successfully`;
-        bot.sendMessage(msg.chat.id, responseTelegram);
+        let responseTelegram = `add issue ${title} to project ${projectId} successfully`;
+        bot.sendMessage(message!.chat.id, responseTelegram);
+        projectId = '';
+        memberId = '';
       })
       .catch((err) => {
         console.log(err);
-        bot.sendMessage(msg.chat.id, err.message);
+        bot.sendMessage(message!.chat.id, err.message);
       });
   }
 });
+
+// bot.onText(/\/add-issue-project-user /, function onTextHandler(msg) {
+//   let mess = '';
+//   let idProject = '';
+//   let issueStr = '';
+//   let idUser = '';
+//   let msgText = msg.text;
+//   if (msgText && msgText.split(' ').length == 4) {
+//     idProject = msgText.split(' ')[1];
+//     issueStr = msgText.split(' ')[2];
+//     idUser = msgText.split(' ')[3];
+//   } else {
+//     mess = 'Your input not valid';
+//   }
+//   if (mess) {
+//     bot.sendMessage(msg.chat.id, mess);
+//   } else {
+//     axios
+//       .post(
+//         `${process.env.API_GITLAB_URL}/projects/${idProject}/issues`,
+//         {
+//           title: issueStr,
+//           assignee_id: idUser,
+//         },
+//         {
+//           headers: {
+//             Authorization: `Bearer ${process.env.ACCESS_TOKEN_GITLAB}`,
+//           },
+//         }
+//       )
+//       .then((res) => {
+//         let responseTelegram = `add issue ${issueStr} to project ${idProject} to user ${idUser} successfully`;
+//         bot.sendMessage(msg.chat.id, responseTelegram);
+//       })
+//       .catch((err) => {
+//         console.log(err);
+//         bot.sendMessage(msg.chat.id, err.message);
+//       });
+//   }
+// });
 
 // Handle callback queries
 // bot.on(
