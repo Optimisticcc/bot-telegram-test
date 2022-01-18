@@ -563,24 +563,11 @@ bot.on('callback_query', async (data2) => {
   let members: any = [];
   if (data2!.message!.text === 'Choose assignment') {
     memberId = data2.data as string;
-    // try {
-    //   await bot.deleteMessage(
-    //     data2!.message!.chat.id,
-    //     data2!.message!.message_id.toString()
-    //   );
-    // } catch (err) {}
     await bot.editMessageText('Type /issue title of issue to end the action', {
       chat_id: data2!.message?.chat.id,
       message_id: data2!.message?.message_id,
     });
   } else if (data2!.message!.text === 'Choose your project') {
-    // try {
-    //   await bot.deleteMessage(
-    //     data2!.message!.chat.id,
-    //     data2!.message!.message_id.toString()
-    //   );
-    // } catch (err) {}
-
     projectId = data2.data as string;
     await axios
       .get('https://gitlab.com/api/v4/groups/15116102/members', {
